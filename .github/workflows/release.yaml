@@ -15,6 +15,9 @@ env:
   # https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-storage-and-bandwidth-usage
   use_git_lfs: true
 
+permissions:
+  contents: write
+
 jobs:
   # Build for wasm
   release-wasm:
