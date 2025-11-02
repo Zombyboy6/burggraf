@@ -64,6 +64,12 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
 
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4.2.5
+        with:
+          branch: gh-pages
+          folder: wasm
+
   # Build for Linux
   release-linux:
     runs-on: ubuntu-latest
