@@ -6,11 +6,23 @@ use bevy::{
 
 use crate::{
     GameState,
-    ui::{main_menu::spawn_main_menu, widgets::button::button_hover},
+    ui::{main_menu::spawn_main_menu, widgets::button_hover},
 };
 
 mod main_menu;
 pub mod widgets;
+
+pub const SCROLL_SLICER: TextureSlicer = TextureSlicer {
+    border: BorderRect {
+        left: 8.0,
+        right: 8.0,
+        top: 5.0,
+        bottom: 6.0,
+    },
+    center_scale_mode: SliceScaleMode::Stretch,
+    sides_scale_mode: SliceScaleMode::Stretch,
+    max_corner_scale: 1.0,
+};
 
 pub const PAPER_SLICER: TextureSlicer = TextureSlicer {
     border: BorderRect {

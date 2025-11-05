@@ -6,11 +6,12 @@ use bevy::{
     ui_widgets::{Activate, observe},
 };
 
-use crate::ui::widgets::button::button;
+use crate::ui::widgets::{button, window};
 
 pub(crate) fn spawn_main_menu(mut commands: Commands) {
     commands.spawn(Camera2d);
-    commands.spawn((
+
+    let mut root = commands.spawn((
         Node {
             width: percent(100),
             height: percent(100),
@@ -20,8 +21,18 @@ pub(crate) fn spawn_main_menu(mut commands: Commands) {
             ..default()
         },
         TabGroup::default(),
-        children![
-            (
+    ));
+
+    root.with_child(window(
+        "Main Menu",
+        Node {
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            flex_direction: FlexDirection::Column,
+            ..default()
+        },
+        (
+            Spawn((
                 Node {
                     min_width: px(80),
                     align_items: AlignItems::Center,
@@ -36,9 +47,9 @@ pub(crate) fn spawn_main_menu(mut commands: Commands) {
                         ThemedText,
                         TextColor(Color::srgb_u8(130, 85, 45)),
                     ))
-                )]
-            ),
-            (
+                )],
+            )),
+            Spawn((
                 Node {
                     min_width: px(80),
                     align_items: AlignItems::Center,
@@ -53,9 +64,9 @@ pub(crate) fn spawn_main_menu(mut commands: Commands) {
                         ThemedText,
                         TextColor(Color::srgb_u8(130, 85, 45)),
                     ))
-                )]
-            ),
-            (
+                )],
+            )),
+            Spawn((
                 Node {
                     min_width: px(80),
                     align_items: AlignItems::Center,
@@ -74,8 +85,8 @@ pub(crate) fn spawn_main_menu(mut commands: Commands) {
                         ThemedText,
                         TextColor(Color::srgb_u8(130, 85, 45)),
                     ))
-                )]
-            ),
-        ],
+                )],
+            )),
+        ),
     ));
 }
