@@ -156,7 +156,11 @@ fn set_button_style(
             image.0.image = asset_server.load("textures/ui/paper.png");
             image.0.image_mode = NodeImageMode::Sliced(PAPER_SLICER);
             image.1.padding = image.1.padding.with_bottom(px(0.0));
-            node.padding = node.padding.with_top(px(4.0));
+            node.padding = node
+                .padding
+                .with_top(px(4.0))
+                .with_left(px(2))
+                .with_right(px(2));
         }
         // Hovered, not pressed
         (false, true, false) => {
@@ -164,7 +168,11 @@ fn set_button_style(
             image.0.image = asset_server.load("textures/ui/paper_thick.png");
             image.0.image_mode = NodeImageMode::Sliced(PAPER_THICK_SLICER);
             image.1.padding = image.1.padding.with_bottom(px(4.0));
-            node.padding = node.padding.with_top(px(0.0));
+            node.padding = node
+                .padding
+                .with_top(px(0.0))
+                .with_left(px(0))
+                .with_right(px(0));
         }
         // Not hovered
         (false, false, _) => {
