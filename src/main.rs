@@ -1,4 +1,5 @@
 pub mod constants;
+pub mod leaf_material;
 mod player;
 pub mod ui;
 mod world;
@@ -9,14 +10,15 @@ use bevy::{
     feathers::FeathersPlugin,
     image::ImageSamplerDescriptor,
     input_focus::{InputDispatchPlugin, tab_navigation::TabNavigationPlugin},
-    pbr::wireframe::{WireframeConfig, WireframePlugin},
+    pbr::{ExtendedMaterial, wireframe::WireframeConfig},
     prelude::*,
-    render::RenderDebugFlags,
     ui_widgets::UiWidgetsPlugins,
 };
 use puppeteer::PuppeteerPlugin;
 
-use crate::{player::PlayerPlugin, ui::UiPlugin, world::WorldPlugin};
+use crate::{
+    leaf_material::LeafMaterialExtension, player::PlayerPlugin, ui::UiPlugin, world::WorldPlugin,
+};
 
 fn main() -> AppExit {
     let mut app = App::new();
@@ -38,10 +40,15 @@ fn main() -> AppExit {
     // Third party plugins
     .add_plugins((PhysicsPlugins::default(), PuppeteerPlugin))
     // Game plugins
-    .add_plugins((UiPlugin, PlayerPlugin, WorldPlugin))
+    .add_plugins((
+        UiPlugin,
+        PlayerPlugin,
+        WorldPlugin,
+        MaterialPlugin::<ExtendedMaterial<StandardMaterial, LeafMaterialExtension>>::default(),
+    ))
     // Bevy plugins
     .add_plugins((
-        WireframePlugin::new(RenderDebugFlags::default()),
+        //WireframePlugin::new(RenderDebugFlags::default()),
         FeathersPlugin,
         UiWidgetsPlugins,
         InputDispatchPlugin,

@@ -4,6 +4,7 @@ use bevy::{
     prelude::*,
     window::{CursorGrabMode, CursorOptions, PrimaryWindow},
 };
+use bevy_inspector_egui::bevy_egui::PrimaryEguiContext;
 use puppeteer::{
     puppet_rig::{PuppetRig, PuppetRigs},
     puppeteer::{Puppeteer, PuppeteerInput},
@@ -39,6 +40,7 @@ fn spawn_player(mut commands: Commands, _asset_server: Res<AssetServer>) {
                     ..default()
                 },
                 Camera3d::default(),
+                PrimaryEguiContext
             )]
         ),
     ));
