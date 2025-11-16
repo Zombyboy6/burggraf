@@ -6,10 +6,13 @@ use bevy::{
     ui_widgets::{Activate, observe},
 };
 
-use crate::ui::widgets::{button, window};
+use crate::{
+    GameState,
+    ui::widgets::{button, window},
+};
 
 pub(crate) fn spawn_main_menu(mut commands: Commands) {
-    commands.spawn(Camera2d);
+    commands.spawn((Camera2d, DespawnOnExit(GameState::MainMenu)));
 
     let mut root = commands.spawn((
         Node {
@@ -20,6 +23,7 @@ pub(crate) fn spawn_main_menu(mut commands: Commands) {
             flex_direction: FlexDirection::Column,
             ..default()
         },
+        DespawnOnExit(GameState::MainMenu),
         TabGroup::default(),
     ));
 
@@ -41,7 +45,11 @@ pub(crate) fn spawn_main_menu(mut commands: Commands) {
                     ..default()
                 },
                 children![button(
-                    (),
+                    observe(
+                        |_activate: On<Activate>, mut next_state: ResMut<NextState<GameState>>| {
+                            next_state.set(GameState::InGame);
+                        },
+                    ),
                     Spawn((
                         Text::new("Start Game"),
                         ThemedText,

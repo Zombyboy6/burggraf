@@ -1,16 +1,22 @@
 pub mod constants;
+mod player;
 pub mod ui;
+mod world;
 
+use avian3d::PhysicsPlugins;
 use bevy::{
     asset::AssetMetaCheck,
     feathers::FeathersPlugin,
     image::ImageSamplerDescriptor,
     input_focus::{InputDispatchPlugin, tab_navigation::TabNavigationPlugin},
+    pbr::wireframe::{WireframeConfig, WireframePlugin},
     prelude::*,
+    render::RenderDebugFlags,
     ui_widgets::UiWidgetsPlugins,
 };
+use puppeteer::PuppeteerPlugin;
 
-use crate::ui::UiPlugin;
+use crate::{player::PlayerPlugin, ui::UiPlugin, world::WorldPlugin};
 
 fn main() -> AppExit {
     let mut app = App::new();
@@ -29,14 +35,23 @@ fn main() -> AppExit {
     )
     .init_state::<GameState>()
     .insert_resource(UiScale(4.0))
-    .add_plugins(UiPlugin)
+    // Third party plugins
+    .add_plugins((PhysicsPlugins::default(), PuppeteerPlugin))
+    // Game plugins
+    .add_plugins((UiPlugin, PlayerPlugin, WorldPlugin))
+    // Bevy plugins
     .add_plugins((
+        WireframePlugin::new(RenderDebugFlags::default()),
         FeathersPlugin,
         UiWidgetsPlugins,
         InputDispatchPlugin,
         TabNavigationPlugin,
-    ))
-    .run()
+    ));
+    app.insert_resource(WireframeConfig {
+        global: true,
+        ..default()
+    });
+    app.run()
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, States, Default)]
