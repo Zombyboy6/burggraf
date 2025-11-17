@@ -48,7 +48,7 @@ fn main() -> AppExit {
     ))
     // Bevy plugins
     .add_plugins((
-        //WireframePlugin::new(RenderDebugFlags::default()),
+        // WireframePlugin::new(RenderDebugFlags::default()),
         FeathersPlugin,
         UiWidgetsPlugins,
         InputDispatchPlugin,

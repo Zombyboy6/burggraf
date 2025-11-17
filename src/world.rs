@@ -2,13 +2,13 @@ use avian3d::prelude::{Collider, RigidBody};
 use bevy::{
     image::{ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor},
     light::NotShadowCaster,
-    math::{Affine2, sampling::UniformMeshSampler},
+    math::Affine2,
     mesh::PlaneMeshBuilder,
     pbr::ExtendedMaterial,
     prelude::*,
 };
 use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
-use rand::{Rng, SeedableRng, distr::Distribution, rngs::StdRng};
+use rand::{Rng, SeedableRng, rngs::StdRng};
 
 use crate::{GameState, leaf_material::LeafMaterialExtension};
 
@@ -109,89 +109,34 @@ fn setup(
 
 fn leafs(
     mut commands: Commands,
-    mut query: Query<(&mut Transform, &GlobalTransform, &Name, &Children), Added<Name>>,
-    material_mesh_query: Query<(Entity, &MeshMaterial3d<StandardMaterial>, &Mesh3d)>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut query: Query<(&Name, &Children), Added<Name>>,
     mut extended_materials: ResMut<
         Assets<ExtendedMaterial<StandardMaterial, LeafMaterialExtension>>,
     >,
-    mut meshes: ResMut<Assets<Mesh>>,
     asset_server: Res<AssetServer>,
 ) {
-    for (mut transform, global_transform, name, children) in query.iter_mut() {
+    for (name, children) in query.iter_mut() {
         if !name.contains("leaf") {
             continue;
         }
 
-        for (child_entity, child_mat, child_mesh) in material_mesh_query.iter_many(children) {
-            let Some(material) = materials.get_mut(child_mat.id()) else {
-                continue;
-            };
-
-            material.base_color = Color::srgba_u8(31, 38, 35, 30);
-            material.alpha_mode = AlphaMode::Blend;
-
-            let Some(mesh) = meshes.get_mut(child_mesh.id()) else {
-                continue;
-            };
-
-            mesh.compute_normals();
-            transform.scale = Vec3::splat(0.8);
-
-            let sampler = UniformMeshSampler::try_new(mesh.triangles().unwrap()).unwrap();
-            let rng = StdRng::seed_from_u64(4839270921);
-
-            let leaf_mesh = PlaneMeshBuilder::from_size([2.0, 2.0].into()).build();
-            let leaf_mesh = meshes.add(leaf_mesh.clone());
+        for child_entity in children.iter() {
             let leaf_material = extended_materials.add(ExtendedMaterial {
                 base: StandardMaterial {
                     base_color_texture: Some(asset_server.load("textures/leaf.png")),
                     //unlit: true,
-                    cull_mode: None,
-                    double_sided: true,
-                    alpha_mode: AlphaMode::Blend,
+                    //cull_mode: Some(Face::Front),
+                    double_sided: false,
+                    alpha_mode: AlphaMode::Mask(0.1),
                     ..default()
                 },
-                extension: LeafMaterialExtension {
-                    fade_angle: 0.6,
-                    cluster_center: global_transform.translation(),
-                },
+                extension: LeafMaterialExtension {},
             });
-            for point in sampler.sample_iter(rng).take(50) {
-                /*
-                leaf_mesh.compute_custom_smooth_normals(|[a, b, c], positions, normals| {
-                    let center = Vec3::ZERO;
-                    for i in [a, b, c] {
-                        let pos = Vec3::from_array(positions[i]);
-                        let normal = (pos - center).normalize_or_zero();
-                        normals[i] = normal;
-                    }
-                });
-                */
+            commands
+                .entity(child_entity)
+                .insert(MeshMaterial3d(leaf_material));
 
-                let mut rng = StdRng::from_os_rng();
-
-                //offset point
-                let point = point + point.normalize_or_zero() * 0.5;
-
-                commands.spawn((
-                    Mesh3d(leaf_mesh.clone()),
-                    MeshMaterial3d(leaf_material.clone()),
-                    Transform::from_translation(point)
-                        .with_scale(Vec3::splat(rng.random_range(0.1..1.5)))
-                        .looking_to(
-                            Dir3::new(Vec3::new(
-                                rng.random_range(-1.0..=1.0),
-                                rng.random_range(-1.0..=1.0),
-                                rng.random_range(-1.0..=1.0),
-                            ))
-                            .unwrap(),
-                            Dir3::Y,
-                        ),
-                    ChildOf(child_entity),
-                    NotShadowCaster,
-                ));
-            }
+            continue;
         }
     }
 }
