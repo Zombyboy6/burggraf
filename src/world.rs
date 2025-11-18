@@ -125,8 +125,8 @@ fn leafs(
                 base: StandardMaterial {
                     base_color_texture: Some(asset_server.load("textures/leaf.png")),
                     //unlit: true,
-                    //cull_mode: Some(Face::Front),
-                    double_sided: false,
+                    cull_mode: None,
+                    double_sided: true,
                     alpha_mode: AlphaMode::Mask(0.1),
                     ..default()
                 },

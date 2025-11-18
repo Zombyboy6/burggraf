@@ -2,6 +2,7 @@ use avian3d::prelude::{Collider, RigidBody};
 use bevy::{
     input::{ButtonState, keyboard::KeyboardInput, mouse::MouseMotion},
     prelude::*,
+    render::view::{ColorGrading, ColorGradingGlobal, ColorGradingSection, Hdr},
     window::{CursorGrabMode, CursorOptions, PrimaryWindow},
 };
 use bevy_inspector_egui::bevy_egui::PrimaryEguiContext;
@@ -40,6 +41,38 @@ fn spawn_player(mut commands: Commands, _asset_server: Res<AssetServer>) {
                     ..default()
                 },
                 Camera3d::default(),
+                Hdr,
+                ColorGrading {
+                    global: ColorGradingGlobal {
+                        exposure: 0.0,
+                        temperature: -0.04,
+                        tint: 0.0,
+                        hue: 0.0,
+                        post_saturation: 1.05,
+                        midtones_range: 0.2..0.8,
+                    },
+                    shadows: ColorGradingSection {
+                        saturation: 1.0,
+                        contrast: 1.02,
+                        gamma: 1.0,
+                        gain: 1.0,
+                        lift: 0.0
+                    },
+                    midtones: ColorGradingSection {
+                        saturation: 1.0,
+                        contrast: 1.00,
+                        gamma: 0.75,
+                        gain: 1.0,
+                        lift: 0.0
+                    },
+                    highlights: ColorGradingSection {
+                        saturation: 1.0,
+                        contrast: 0.91,
+                        gamma: 0.75,
+                        gain: 1.0,
+                        lift: 0.0
+                    },
+                },
                 PrimaryEguiContext
             )]
         ),
