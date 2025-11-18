@@ -6,9 +6,10 @@ use bevy::{
 
 use crate::{
     GameState,
-    ui::{main_menu::spawn_main_menu, widgets::button_hover},
+    ui::{in_game_banner::update_resources, main_menu::spawn_main_menu, widgets::button_hover},
 };
 
+mod in_game_banner;
 mod main_menu;
 pub mod widgets;
 
@@ -53,6 +54,7 @@ pub struct UiPlugin;
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(GameState::MainMenu), spawn_main_menu)
-            .add_systems(Update, button_hover);
+            .add_systems(OnEnter(GameState::InGame), in_game_banner::spawn_banner)
+            .add_systems(Update, (button_hover, update_resources));
     }
 }

@@ -1,4 +1,5 @@
 pub mod constants;
+pub mod game_resources;
 pub mod leaf_material;
 mod player;
 pub mod ui;
@@ -17,7 +18,8 @@ use bevy::{
 use puppeteer::PuppeteerPlugin;
 
 use crate::{
-    leaf_material::LeafMaterialExtension, player::PlayerPlugin, ui::UiPlugin, world::WorldPlugin,
+    game_resources::GameResources, leaf_material::LeafMaterialExtension, player::PlayerPlugin,
+    ui::UiPlugin, world::WorldPlugin,
 };
 
 fn main() -> AppExit {
@@ -46,6 +48,7 @@ fn main() -> AppExit {
         WorldPlugin,
         MaterialPlugin::<ExtendedMaterial<StandardMaterial, LeafMaterialExtension>>::default(),
     ))
+    .init_resource::<GameResources>()
     // Bevy plugins
     .add_plugins((
         // WireframePlugin::new(RenderDebugFlags::default()),

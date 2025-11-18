@@ -217,12 +217,12 @@ pub fn world_interaction(
         if mouse_buttons.just_pressed(MouseButton::Right) {
             commands.trigger(PlayerInteraction {
                 entity: first_hit.entity,
-                hit: first_hit.clone(),
+                hit: *first_hit,
             });
         } else {
             commands.trigger(PlayerHit {
                 entity: first_hit.entity,
-                hit: first_hit.clone(),
+                hit: *first_hit,
             });
         };
     }

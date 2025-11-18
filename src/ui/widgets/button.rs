@@ -1,5 +1,5 @@
 use bevy::{
-    ecs::{lifecycle::HookContext, spawn::SpawnableList, world::DeferredWorld},
+    ecs::spawn::SpawnableList,
     feathers::{font_styles::InheritableFont, handle_or_path::HandleOrPath},
     input_focus::tab_navigation::TabIndex,
     picking::hover::Hovered,
@@ -10,7 +10,7 @@ use bevy::{
 
 use crate::{
     constants::fonts,
-    ui::{PAPER_SLICER, PAPER_THICK_SLICER},
+    ui::{PAPER_SLICER, PAPER_THICK_SLICER, widgets::SlicedImage},
 };
 
 pub fn button<C: SpawnableList<ChildOf> + Send + Sync + 'static, B: Bundle>(
@@ -60,35 +60,6 @@ pub fn button<C: SpawnableList<ChildOf> + Send + Sync + 'static, B: Bundle>(
             Children::spawn(children)
         )],
     )
-}
-
-#[derive(Component)]
-#[component(on_insert = resolve_path )]
-pub struct SlicedImage {
-    pub image: HandleOrPath<Image>,
-    pub slicer: TextureSlicer,
-}
-
-fn resolve_path(mut world: DeferredWorld, HookContext { entity, .. }: HookContext) {
-    let sliced_image = world.get::<SlicedImage>(entity).unwrap();
-    let asset_server = world.get_resource::<AssetServer>().unwrap();
-
-    let image = match sliced_image.image.clone() {
-        HandleOrPath::Handle(handle) => handle,
-        HandleOrPath::Path(ref path) => asset_server.load(path.clone()),
-    };
-
-    let slicer = sliced_image.slicer.clone();
-    let image_node = world.get::<ImageNode>(entity).cloned().unwrap_or_default();
-    world
-        .commands()
-        .entity(entity)
-        .insert(ImageNode {
-            image,
-            image_mode: NodeImageMode::Sliced(slicer),
-            ..image_node
-        })
-        .remove::<SlicedImage>();
 }
 
 pub fn button_hover(

@@ -6,7 +6,7 @@ use bevy::{
 
 use crate::{
     constants::fonts,
-    ui::{PAPER_SLICER, SCROLL_SLICER, widgets::button::SlicedImage},
+    ui::{PAPER_SLICER, SCROLL_SLICER, widgets::SlicedImage},
 };
 
 pub fn window<C: SpawnableList<ChildOf> + Send + Sync + 'static>(

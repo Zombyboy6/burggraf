@@ -14,7 +14,10 @@ use bevy::{
 use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
 use rand::{Rng, SeedableRng, rngs::StdRng};
 
-use crate::{GameState, leaf_material::LeafMaterialExtension, player::PlayerHit};
+use crate::{
+    GameState, game_resources::GameResources, leaf_material::LeafMaterialExtension,
+    player::PlayerHit,
+};
 
 pub struct WorldPlugin;
 
@@ -115,9 +118,11 @@ fn setup(
                 rng.random_range(0.8..1.2),
             ))
             .with_rotation(Quat::from_rotation_y(rng.random_range(0.0..PI * 2.0))),
-            observe(|_hit: On<PlayerHit>| {
-                info!("Player hit tree");
-            }),
+            observe(
+                |_hit: On<PlayerHit>, mut game_resources: ResMut<GameResources>| {
+                    game_resources.wood += 1;
+                },
+            ),
         ));
     }
 }
