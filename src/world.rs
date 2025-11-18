@@ -1,4 +1,7 @@
-use avian3d::prelude::{Collider, RigidBody};
+use avian3d::{
+    math::PI,
+    prelude::{Collider, ColliderConstructor, ColliderConstructorHierarchy, RigidBody},
+};
 use bevy::{
     image::{ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor},
     light::NotShadowCaster,
@@ -6,11 +9,12 @@ use bevy::{
     mesh::PlaneMeshBuilder,
     pbr::ExtendedMaterial,
     prelude::*,
+    ui_widgets::observe,
 };
 use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
 use rand::{Rng, SeedableRng, rngs::StdRng};
 
-use crate::{GameState, leaf_material::LeafMaterialExtension};
+use crate::{GameState, leaf_material::LeafMaterialExtension, player::PlayerHit};
 
 pub struct WorldPlugin;
 
@@ -98,11 +102,22 @@ fn setup(
         let mut rng = StdRng::from_os_rng();
         commands.spawn((
             SceneRoot(asset_server.load("tree/tree.gltf#Scene0")),
+            ColliderConstructorHierarchy::new(ColliderConstructor::TrimeshFromMesh),
+            RigidBody::Static,
             Transform::from_xyz(
                 rng.random_range(-100.0..100.0),
                 0.0,
                 rng.random_range(-100.0..100.0),
-            ),
+            )
+            .with_scale(Vec3::new(
+                rng.random_range(0.8..1.2),
+                rng.random_range(0.8..1.2),
+                rng.random_range(0.8..1.2),
+            ))
+            .with_rotation(Quat::from_rotation_y(rng.random_range(0.0..PI * 2.0))),
+            observe(|_hit: On<PlayerHit>| {
+                info!("Player hit tree");
+            }),
         ));
     }
 }

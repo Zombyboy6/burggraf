@@ -1,4 +1,5 @@
-use avian3d::prelude::{Collider, RigidBody};
+#![allow(dead_code)]
+use avian3d::prelude::{Collider, RayCaster, RayHitData, RayHits, RigidBody, SpatialQueryFilter};
 use bevy::{
     input::{ButtonState, keyboard::KeyboardInput, mouse::MouseMotion},
     prelude::*,
@@ -7,7 +8,7 @@ use bevy::{
 };
 use bevy_inspector_egui::bevy_egui::PrimaryEguiContext;
 use puppeteer::{
-    puppet_rig::{PuppetRig, PuppetRigs},
+    puppet_rig::{PuppetRig, RelatedPuppet},
     puppeteer::{Puppeteer, PuppeteerInput},
 };
 
@@ -19,7 +20,8 @@ impl Plugin for PlayerPlugin {
         app.add_systems(OnEnter(GameState::InGame), spawn_player)
             .add_systems(
                 Update,
-                (mouse_lock, player_look, player_move).run_if(in_state(GameState::InGame)),
+                (mouse_lock, player_look, player_move, world_interaction)
+                    .run_if(in_state(GameState::InGame)),
             );
     }
 }
@@ -28,54 +30,62 @@ impl Plugin for PlayerPlugin {
 pub struct Player;
 
 fn spawn_player(mut commands: Commands, _asset_server: Res<AssetServer>) {
+    let player_body = commands
+        .spawn((
+            Player,
+            Puppeteer::default(),
+            Collider::capsule(0.25, 1.80),
+            RigidBody::Kinematic,
+            Transform::from_xyz(0.0, 5.5, 0.0),
+        ))
+        .id();
     commands.spawn((
-        Player,
-        Puppeteer::default(),
-        Collider::capsule(0.25, 1.80),
-        RigidBody::Kinematic,
-        Transform::from_xyz(0.0, 5.5, 0.0),
-        related!(
-            PuppetRigs[(
-                PuppetRig {
-                    offset: Some(Vec3::new(0.0, 0.9, 0.0)),
-                    ..default()
-                },
-                Camera3d::default(),
-                Hdr,
-                ColorGrading {
-                    global: ColorGradingGlobal {
-                        exposure: 0.0,
-                        temperature: -0.04,
-                        tint: 0.0,
-                        hue: 0.0,
-                        post_saturation: 1.05,
-                        midtones_range: 0.2..0.8,
-                    },
-                    shadows: ColorGradingSection {
-                        saturation: 1.0,
-                        contrast: 1.02,
-                        gamma: 1.0,
-                        gain: 1.0,
-                        lift: 0.0
-                    },
-                    midtones: ColorGradingSection {
-                        saturation: 1.0,
-                        contrast: 1.00,
-                        gamma: 0.75,
-                        gain: 1.0,
-                        lift: 0.0
-                    },
-                    highlights: ColorGradingSection {
-                        saturation: 1.0,
-                        contrast: 0.91,
-                        gamma: 0.75,
-                        gain: 1.0,
-                        lift: 0.0
-                    },
-                },
-                PrimaryEguiContext
-            )]
-        ),
+        PuppetRig {
+            offset: Some(Vec3::new(0.0, 0.9, 0.0)),
+            ..default()
+        },
+        RelatedPuppet::new(player_body),
+        Camera3d::default(),
+        // Raycaster for world interaction
+        RayCaster::new(Vec3::ZERO, Dir3::NEG_Z)
+            .with_ignore_self(true)
+            .with_query_filter(SpatialQueryFilter::from_excluded_entities(vec![
+                player_body,
+            ]))
+            .with_max_distance(3.0),
+        Hdr,
+        ColorGrading {
+            global: ColorGradingGlobal {
+                exposure: 0.0,
+                temperature: -0.04,
+                tint: 0.0,
+                hue: 0.0,
+                post_saturation: 1.05,
+                midtones_range: 0.2..0.8,
+            },
+            shadows: ColorGradingSection {
+                saturation: 1.0,
+                contrast: 1.02,
+                gamma: 1.0,
+                gain: 1.0,
+                lift: 0.0,
+            },
+            midtones: ColorGradingSection {
+                saturation: 1.0,
+                contrast: 1.00,
+                gamma: 0.75,
+                gain: 1.0,
+                lift: 0.0,
+            },
+            highlights: ColorGradingSection {
+                saturation: 1.0,
+                contrast: 0.91,
+                gamma: 0.75,
+                gain: 1.0,
+                lift: 0.0,
+            },
+        },
+        PrimaryEguiContext,
     ));
 }
 
@@ -173,4 +183,47 @@ pub fn player_move(
     input.move_amount(move_vector);
     //println!("{:?}", move_vector);
     Ok(())
+}
+
+#[derive(EntityEvent)]
+#[entity_event(propagate)]
+#[entity_event(auto_propagate)]
+pub struct PlayerInteraction {
+    entity: Entity,
+    hit: RayHitData,
+}
+
+#[derive(EntityEvent)]
+#[entity_event(propagate)]
+#[entity_event(auto_propagate)]
+pub struct PlayerHit {
+    entity: Entity,
+    hit: RayHitData,
+}
+
+pub fn world_interaction(
+    mut commands: Commands,
+    mouse_buttons: Res<ButtonInput<MouseButton>>,
+    rays: Query<(&RayCaster, &RayHits), With<PuppetRig>>,
+) {
+    if !mouse_buttons.any_just_pressed(vec![MouseButton::Right, MouseButton::Left]) {
+        return;
+    }
+    for (_ray_caster, ray_hits) in rays.iter() {
+        let Some(first_hit) = ray_hits.first() else {
+            continue;
+        };
+
+        if mouse_buttons.just_pressed(MouseButton::Right) {
+            commands.trigger(PlayerInteraction {
+                entity: first_hit.entity,
+                hit: first_hit.clone(),
+            });
+        } else {
+            commands.trigger(PlayerHit {
+                entity: first_hit.entity,
+                hit: first_hit.clone(),
+            });
+        };
+    }
 }
