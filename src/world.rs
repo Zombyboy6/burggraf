@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use avian3d::{
     math::PI,
     prelude::{Collider, ColliderConstructor, ColliderConstructorHierarchy, RigidBody},
@@ -15,7 +17,10 @@ use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
 use rand::{Rng, SeedableRng, rngs::StdRng};
 
 use crate::{
-    GameState, game_resources::GameResources, leaf_material::LeafMaterialExtension,
+    GameState,
+    effects::{delay_component::DelayRemove, mesh_material_override::MeshMaterialOverride},
+    game_resources::GameResources,
+    leaf_material::LeafMaterialExtension,
     player::PlayerHit,
 };
 
@@ -119,7 +124,23 @@ fn setup(
             ))
             .with_rotation(Quat::from_rotation_y(rng.random_range(0.0..PI * 2.0))),
             observe(
-                |_hit: On<PlayerHit>, mut game_resources: ResMut<GameResources>| {
+                |hit: On<PlayerHit>,
+                 mut game_resources: ResMut<GameResources>,
+                 mut commands: Commands,
+                 mut materials: ResMut<Assets<StandardMaterial>>,
+                 | {
+                    commands
+                        .entity(hit.event().event_target())
+                        .insert_recursive::<Children>((
+                            MeshMaterialOverride::<_, StandardMaterial>::new(materials.add(StandardMaterial{
+                                unlit: true,
+                                base_color: Color::WHITE.darker(0.7),
+                                ..default()
+                            })),
+                            DelayRemove::<MeshMaterialOverride<StandardMaterial,StandardMaterial>>::new(
+                                Duration::from_millis(50),
+                            ),
+                        ));
                     game_resources.wood += 1;
                 },
             ),
@@ -154,7 +175,8 @@ fn leafs(
             });
             commands
                 .entity(child_entity)
-                .insert(MeshMaterial3d(leaf_material));
+                .insert(MeshMaterial3d(leaf_material))
+                .remove::<MeshMaterial3d<StandardMaterial>>();
 
             continue;
         }

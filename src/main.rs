@@ -1,4 +1,5 @@
 pub mod constants;
+pub mod effects;
 pub mod game_resources;
 pub mod leaf_material;
 mod player;
@@ -18,8 +19,8 @@ use bevy::{
 use puppeteer::PuppeteerPlugin;
 
 use crate::{
-    game_resources::GameResources, leaf_material::LeafMaterialExtension, player::PlayerPlugin,
-    ui::UiPlugin, world::WorldPlugin,
+    effects::delay_component::DelayComponentPlugin, game_resources::GameResources,
+    leaf_material::LeafMaterialExtension, player::PlayerPlugin, ui::UiPlugin, world::WorldPlugin,
 };
 
 fn main() -> AppExit {
@@ -43,6 +44,7 @@ fn main() -> AppExit {
     .add_plugins((PhysicsPlugins::default(), PuppeteerPlugin))
     // Game plugins
     .add_plugins((
+        DelayComponentPlugin,
         UiPlugin,
         PlayerPlugin,
         WorldPlugin,
